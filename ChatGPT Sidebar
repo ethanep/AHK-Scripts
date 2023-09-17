@@ -1,0 +1,47 @@
+; AutoHotkey Script for Windows Startup and Side Panel
+; Author: Ethan Ep
+; Version: 1.0
+; Description: This script creates a side panel using Brave or Chrome browser that can be toggled using the CapsLock key.
+
+#Persistent  ; Keeps the script running
+
+; === User Configuration ===
+; Specify the path to your Brave or Chrome executable here
+browserPath := "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
+
+; === Startup Configuration ===
+; Check if the script is in the startup directory and create a shortcut if not
+startupDir := "C:\Users\" . A_UserName . "\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+scriptPath := A_ScriptFullPath
+if (!FileExist(startupDir . "\\" . A_ScriptName . ".lnk"))
+{
+    FileCreateShortcut, %scriptPath%, %startupDir%\\%A_ScriptName%.lnk
+}
+
+; === Initialize Panel ===
+; Create the initial panel window
+Run, %browserPath% --app=https://chat.openai.com
+Sleep, 2000  ; Wait for the window to open
+WinGet, panelHWND, ID, ahk_exe brave.exe ahk_class Chrome_WidgetWin_1  ; Get the window handle
+WinMove, ahk_id %panelHWND%,, 0, 0, 650, A_ScreenHeight  ; Position the window
+WinMinimize, ahk_id %panelHWND%  ; Minimize the window
+
+; === Toggle Side Panel ===
+panelVisible := false  ; Panel visibility flag
+
+CapsLock::  ; Trigger for the CapsLock key
+{
+    if (!panelVisible)  ; If the panel is not visible
+    {
+        ; Maximize and activate the panel
+        WinRestore, ahk_id %panelHWND%
+        WinActivate, ahk_id %panelHWND%
+        panelVisible := true
+    }
+    else  ; If the panel is visible
+    {
+        ; Minimize the panel
+        WinMinimize, ahk_id %panelHWND%
+        panelVisible := false
+    }
+}
